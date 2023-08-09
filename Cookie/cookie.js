@@ -40,7 +40,9 @@ http.createServer(async(req,res) => {
 
         const expires = new Date();
         expires.setMinutes(expires.getMinutes() + 5) // 쿠키의 유효기간을 현재시간 +5분 으로 설정함.
-        res.writeHead(302, { Location: '/', 'Set-Cookie': `name=${encodeURIComponent(name)};  Expires=${expires.toGMTString()};  HttpOnly;  Path=/`}) // 리다이렉트될 주소(Location)를 설정하고, 헤더에 쿠키를 넣음.
+        
+        res.writeHead(302, {  Location: '/', 'Set-Cookie': `name=${encodeURIComponent(name)};  Expires=${expires.toGMTString()};  HttpOnly;  Path=/`
+            }) // 리다이렉트될 주소(Location)를 설정하고, 헤더에 쿠키를 넣음.
         res.end()
     } 
 

@@ -111,7 +111,7 @@ app.use((req, res, next) => {
 //////////////////////
 
 
-
+/* 
 const express = require('express')
 const app = express()
 
@@ -128,7 +128,80 @@ const userRouter = require('./routes/user')
 app.use('/', indexRouter) 
 app.use('/user', userRouter)
 // http://localhost:3000/ 로 접속할 경우, 브라우저에 Hello 가 출력됨.
-// http://localhost:3000/user 로 접속할 경우, 브라우저에 Hello Seongjin 가 출력됨.
+// http://localhost:3000/user 로 접속할 경우, 브라우저에 Hello Seongjin 가 출력됨. 
+*/
+
+/////////////////////
+
+/* 
+const express = require('express')
+const app = express()
+
+app.set('port', process.env.PORT || 3000)
+app.listen(app.get('port'), () => {
+    console.log(app.get('port'), '번 포트에서 대기 중')
+}) 
+
+
+const patt = (req, res) => {
+    console.log(req.params)
+    console.log(req.query)
+}
+
+app.get('/user/:id', patt)
+
+// http://localhost:3000/user/1234?hello=5&bye=10 로 접속할 경우,
+// 콘솔에 { id: '1234' }와 { hello: '5', bye: '10' } 가 출력됨. */
+
+
+////////////////////////
+
+
+/* const express = require('express')
+const app = express()
+
+app.set('port', process.env.PORT || 3000)
+
+app.listen(app.get('port'), () => {
+    console.log(app.get('port'), '번 포트에서 대기 중')
+}) 
+
+
+const indexRouter = require('./routes')
+
+app.use(indexRouter)  */
+
+
+////////////////
+
+
+/* const express = require('express')
+const { head } = require('./routes/user')
+const app = express()
+
+app.set('port', process.env.PORT || 3000)
+
+app.set('views', path.join(__dirname, 'views'))
+app.set('view engine', 'pug') */
+
+
+//////////////
+
+
+/* router.get('/', (req, res, next) => {
+    res.render('index', {title: 'Hello'})
+})
+ */
+
+////////////
+
+/* router.get('/', (req, res, next) => {
+    res.locals.title = 'Hello';
+    res.render('index')
+}) */
+
+
+////////////
 
 
 
