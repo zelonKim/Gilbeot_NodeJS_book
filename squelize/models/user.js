@@ -45,3 +45,10 @@ class User extends Sequelize.Model { // 모델은 Sequelize.Model을 확장(exte
 }
 
 module.exports = User;
+
+
+
+
+
+
+
