@@ -1,15 +1,19 @@
 const express = require('express')
-const cookieParser = require('cookieParser')
+const cookieParser = require('cookie-parser')
 const morgan = require('morgan')
 const path = require('path')
-const session = require('session')
+const session = require('express-session')
 const nunjucks = require('nunjucks')
 const dotenv = require('dotenv')
+const passport = require('passport')
 
 dotenv.config()
 const pageRouter = require('./routes/page')
+const { sequelize } = require('./models')
+const passportConfig = require('./passport')
 
 const app = express()
+passportConfig()
 app.set('port', process.env.PORT || 8001);
 app.set('view engine', 'html');
 
@@ -17,6 +21,14 @@ nunjucks.configure('views', {
     express: app,
     watch: true
 })
+
+sequelize.sync({ force: false })
+    .then(() => {
+        console.log('데이터 베이스 연결 성공')
+    })
+    .catch((err) => {
+        console.error(err)
+    })
 
 app.use(morgan('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
@@ -33,6 +45,9 @@ app.use(session({
     }
 }))
 
+app.use(passport.initialize()) // req객체에 passport설정을 심음.
+app.use(passport.session()) // req.session객체에 passport정보를 저장함.
+
 app.use('/', pageRouter)
 
 
@@ -43,12 +58,12 @@ app.use((req, res, next) => {
     next(error)
 })
 
-app.use((err, req, res, next)) => {
+app.use((err, req, res, next) => {
     res.locals.message = err.message;
     res.locals.error = process.env.NODE_ENV !== 'production' ? err: {}
     res.status(err.status || 500)
     res.render('error')
-}
+})
 
 app.listen(app.get('port'), () => {
     console.log(app.get('port'), '번 포트에서 대기 중')
