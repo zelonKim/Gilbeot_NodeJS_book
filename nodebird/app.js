@@ -8,7 +8,10 @@ const dotenv = require('dotenv')
 const passport = require('passport')
 
 dotenv.config()
+
 const pageRouter = require('./routes/page')
+const authRouter = require('./routes/auth')
+
 const { sequelize } = require('./models')
 const passportConfig = require('./passport')
 
@@ -45,10 +48,17 @@ app.use(session({
     }
 }))
 
-app.use(passport.initialize()) // req객체에 passport설정을 심음.
+
+
+
+app.use(passport.initialize()) // req객체에 passport 설정을 심음.
 app.use(passport.session()) // req.session객체에 passport정보를 저장함.
 
+
 app.use('/', pageRouter)
+app.use('/auth', authRouter)
+
+
 
 
 

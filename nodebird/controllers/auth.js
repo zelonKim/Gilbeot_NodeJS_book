@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt')
 const passport = require('passport')
 const User = require('../models/user')
 
+
 exports.join = async(req, res, next) => {
     const { email, nick, password } = req.body;
 
@@ -10,6 +11,7 @@ exports.join = async(req, res, next) => {
         if(exUser) {
             return res.redirect('/join?error=exist')
         }
+
         const hash = await bcrypt.hash(password, 12);
 
         await User.create({
@@ -36,7 +38,7 @@ exports.login = (req, res, next) => {
             return res.redirect(`/?loginError=${info.message}`)
         }
 
-        return req.login(user, (loginError) => {
+        return req.login(user, (loginError) => { // req.login의 인수는 passport.serializeUser의 인수로 전달됨.
             if(loginError) {
                 console.error(loginError)
                 return next(loginError)

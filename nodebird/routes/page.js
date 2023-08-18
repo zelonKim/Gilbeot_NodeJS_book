@@ -12,10 +12,12 @@ router.use((req, res, next) => {
   next();
 });
 
-router.get('/profile', isLoggedIn, renderProfile);
+router.get('/', renderMain);
 
 router.get('/join', isNotLoggedIn, renderJoin);
 
-router.get('/', renderMain);
+router.get('/profile', isLoggedIn, renderProfile);
+
+
 
 module.exports = router;

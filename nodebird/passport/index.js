@@ -1,7 +1,8 @@
+const User = require('../models/user')
 const passport = require('passport')
 const local = require('./localStrategy')
 const kakao = require('./kakaoStrategy')
-const User = require('../models/user')
+
 
 module.exports = () => {
     passport.serializeUser((user, done) => {
@@ -9,7 +10,7 @@ module.exports = () => {
     })
 
     passport.deserializeUser((id, done) => {
-        User.findOne({ where: { id }}) // 세션에 저장한 아이디를 통해 유저 정보 객체를 불러옴.
+        User.findOne({ where: { id }}) // 세션에 저장된 아이디를 통해 유저 데이터를 가져옴.
             .then(user => done(null, user)) // 조회한 정보를 req.user 에 저장함.
             .catch(err => done(err))
     })
