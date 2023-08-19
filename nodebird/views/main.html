@@ -6,18 +6,22 @@
       {% if user %}
         <div>
           <form id="twit-form" action="/post" method="post" enctype="multipart/form-data">
+
             <div class="input-group">
               <textarea id="twit" name="content" maxlength="140"></textarea>
             </div>
+
             <div class="img-preview">
               <img id="img-preview" src="" style="display: none;" width="250" alt="미리보기">
               <input id="img-url" type="hidden" name="url">
             </div>
+
             <div>
-              <label id="img-label" for="img">사진 업로드</label>
+              <label id="img-label" for="img"> 사진 업로드 </label>
               <input id="img" type="file" accept="image/*">
-              <button id="twit-btn" type="submit" class="btn">짹짹</button>
+              <button id="twit-btn" type="submit" class="btn"> 트윗 </button>
             </div>
+
           </form>
         </div>
       {% endif %}
@@ -25,14 +29,14 @@
       <div class="twits">
         <form id="hashtag-form" action="/hashtag">
           <input type="text" name="hashtag" placeholder="태그 검색">
-          <button class="btn">검색</button>
+          <button class="btn"> 검색 </button>
         </form>
 
         {% for twit in twits %}
           <div class="twit">
             <input type="hidden" value="{{twit.User.id}}" class="twit-user-id">
             <input type="hidden" value="{{twit.id}}" class="twit-id">
-            <div class="twit-author">{{twit.User.nick}}</div>
+            <div class="twit-author"> {{twit.User.nick}} </div>
             
             
             {% if not followingIdList.includes(twit.User.id) and twit.User.id !== user.id %}

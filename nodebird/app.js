@@ -11,6 +11,8 @@ dotenv.config()
 
 const pageRouter = require('./routes/page')
 const authRouter = require('./routes/auth')
+const postRouter = require('./routes/post')
+const userRouter = require('./routes/user')
 
 const { sequelize } = require('./models')
 const passportConfig = require('./passport')
@@ -35,6 +37,11 @@ sequelize.sync({ force: false })
 
 app.use(morgan('dev'))
 app.use(express.static(path.join(__dirname, 'public')))
+
+app.use('/img', express.static(path.join(__dirname, 'uploads'))) 
+// static미들웨어로 업로드한 이미지를 제공할 라우터('/img')를 'uploads'폴더와 연결함.
+// uploads폴더 내 사진들이 '/img'경로로 제공됨.
+
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cookieParser(process.env.COOKIE_SECRET))
@@ -51,14 +58,14 @@ app.use(session({
 
 
 
-app.use(passport.initialize()) // req객체에 passport 설정을 심음.
+app.use(passport.initialize()) // req객체에 passport설정을 심음.
 app.use(passport.session()) // req.session객체에 passport정보를 저장함.
 
 
 app.use('/', pageRouter)
 app.use('/auth', authRouter)
-
-
+app.use('/post', postRouter)
+app.use('/user', userRouter)
 
 
 
