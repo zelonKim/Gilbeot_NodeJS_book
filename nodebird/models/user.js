@@ -42,13 +42,13 @@ class User extends Sequelize.Model {
 
         // 같은 테이블 간의 다대다 관계 -> foreignKey와 반대되는 모델을 가리키는 as 옵션을 설정해줘야 함. 
         db.User.belongsToMany(db.User, {
-            foreignKey: 'fllowingId',
+            foreignKey: 'followingId',
             as: 'Followers',
             through: 'Follow',
         })
 
         db.User.belongsToMany(db.User, {
-            foreignKey: 'fllowerId',
+            foreignKey: 'followerId',
             as: 'Followings',
             through: 'Follow',
         })
