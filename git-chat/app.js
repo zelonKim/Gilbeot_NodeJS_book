@@ -8,11 +8,9 @@ const dotenv = require('dotenv');
 const ColorHash = require('color-hash').default 
 
 dotenv.config();
-
-const webSocket = require('./socket');
-
 const indexRouter = require('./routes');
 
+const webSocket = require('./socket');
 const connect = require('./schemas')
 
 const app = express();
@@ -24,12 +22,8 @@ nunjucks.configure('views', {
 });
 connect()
 
-app.use(morgan('dev'));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser(process.env.COOKIE_SECRET));
-app.use(session({
+
+const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   secret: process.env.COOKIE_SECRET,
@@ -37,11 +31,20 @@ app.use(session({
     httpOnly: true,
     secure: false,
   },
-}));
+})
+
+app.use(morgan('dev'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/gif', express.static(path.join(__dirname, 'uploads')))
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser(process.env.COOKIE_SECRET));
+app.use(sessionMiddleware)
+
 
 app.use((req, res, next) => {
     if(!req.session.color) {
-        const colorHash = newColorHash(); // 사용자마다 고유 색상을 부여함.
+        const colorHash = new ColorHash(); // 사용자마다 고유 색상을 부여함.
         req.session.color = colorHash.hex(req.sessionID) // 세션 아이디를 HEX 형식의 색상 문자열로 바꿔줌.
         console.log(req.session.color, req.sessionID)
     }
@@ -49,6 +52,7 @@ app.use((req, res, next) => {
 })
 
 app.use('/', indexRouter);
+
 
 app.use((req, res, next) => {
   const error =  new Error(`${req.method} ${req.url} 라우터가 없습니다.`);
@@ -67,4 +71,4 @@ const server = app.listen(app.get('port'), () => {
   console.log(app.get('port'), '번 포트에서 대기중');
 });
 
-webSocket(server, app);
+webSocket(server, app, sessionMiddleware);

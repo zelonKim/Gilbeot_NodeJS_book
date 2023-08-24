@@ -9,7 +9,7 @@
 
       {% for chat in chats %}
         {% if chat.user === user %}
-          <div class="mine" style="color: {{chat.user}}">
+          <div class="mine" style="color:blue">
             <div>{{chat.user}}</div>
 
             {% if chat.gif %}
@@ -25,7 +25,7 @@
           </div>
 
         {% else %}
-          <div class="other" style="color: {{chat.user}}">
+          <div class="other" style="color: blue">
             <div>{{chat.user}}</div>
 
             {% if chat.gif %}
@@ -51,12 +51,12 @@
 
 
   <script src="/socket.io/socket.io.js"></script>
+
   <script>
     const socket = io.connect('http://localhost:8005/chat', {
       path: '/socket.io',
     });
 
-    
     socket.emit('join', new URL(location).pathname.split('/').at(-1));
 
     socket.on('join', function (data) {
@@ -79,11 +79,14 @@
 
     socket.on('chat', function (data) {
       const div = document.createElement('div');
+
       if (data.user === '{{user}}') {
         div.classList.add('mine');
-      } else {
+      } 
+      else {
         div.classList.add('other');
       }
+
       const name = document.createElement('div');
       name.textContent = data.user;
       div.appendChild(name);
@@ -98,9 +101,11 @@
         gif.src = '/gif/' + data.gif;
         div.appendChild(gif);
       }
+
       div.style.color = data.user;
       document.querySelector('#chat-list').appendChild(div);
     });
+
     document.querySelector('#chat-form').addEventListener('submit', function (e) {
       e.preventDefault();
 
@@ -116,9 +121,12 @@
           });
       }
     });
-    document.querySelector('#gif').addEventListener('change', function (e) {
+
+  document.querySelector('#gif').addEventListener('change', function (e) {
       console.log(e.target.files);
+
       const formData = new FormData();
+
       formData.append('gif', e.target.files[0]);
 
       axios.post('/room/{{room._id}}/gif', formData)
@@ -128,6 +136,7 @@
         .catch((err) => {
           console.error(err);
         });
-    });
+    }); 
+
   </script>
 {% endblock %}

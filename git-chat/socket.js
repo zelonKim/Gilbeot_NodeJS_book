@@ -70,13 +70,18 @@ module.exports = (server) => {
 
 
 const SocketIO = require('socket.io')
+const { removeRoom } = require('./services')
 
-module.exports = (server, app) => {
+module.exports = (server, app, sessionMiddleware) => {
     const io = SocketIO(server, { path: '/socket.io'})
     app.set('io', io) // 라우터에서 io 객체를 쓸 수 있도록 저장해둠. -> req.app.get('io')로 접근 가능함.
     
     const room = io.of('/room') // of 메서드를 통해 Socket.IO에 네임스페이스를 부여함. -> 같은 네임스페이스끼리만 데이터를 전달함.
     const chat = io.of('/chat')
+
+    const wrap = middleware => (socket, next) => middleware(socket.request, {}, next); // 미들웨어에 req, res, next를 제공해줌.
+    chat.use(wrap(sessionMiddleware)) // chat 네임스페이스에 웹 소켓이 연결될 때마다 실행됨.
+
 
     room.on('connection', (socket) => { // room 네임스페이스에 이벤트 리스너를 붙여줌.
         console.log('room 네임스페이스에 접속')
@@ -91,10 +96,29 @@ module.exports = (server, app) => {
 
         socket.on('join', (data) => {
             socket.join(data)
+            socket.to(data).emit('join', { // to()메서드로 특정 방에 데이터를 보냄.
+                user: 'system',
+                chat: `${socket.request.session.color} 님이 입장하셨습니다.`
+            })
         })
 
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async() => {
             console.log('chat 네임스페이스 해제')
-        })
+            const { referer } = socket.request.headers // referer에 브라우저 주소가 들어있음.
+            const roomId = new URL(referer).pathname.split('/').at(-1); // 방 아이디를 추출해냄.
+            const currentRoom = chat.adapter.rooms.get(roomId) // 참여 중인 소켓 정보가 들어있음.
+            const userCount = currentRoom?.size || 0; // 참여자 수를 구함.
+
+            if (userCount === 0) {
+                await removeRoom(roomId) // removeRoom은 컨트롤러가 아닌, '서비스'임. (웹 소켓에는 req, res, next가 없음.)
+                room.emit('removeRoom', roomId)
+                console.log('방 제거 요청 성공')
+            } else {
+                socket.to(roomId).emit('exit', {
+                    user: 'system',
+                    chat: `${socket.request.session.color}님이 퇴장하셨습니다.`
+                })
+            }
+        });
     })
 }
