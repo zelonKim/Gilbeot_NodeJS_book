@@ -6,6 +6,8 @@ const session = require('express-session')
 const nunjucks = require('nunjucks')
 const dotenv = require('dotenv')
 const passport = require('passport')
+const helmet = require('helmet')
+const hpp = require('hpp')
 
 dotenv.config()
 
@@ -16,8 +18,10 @@ const userRouter = require('./routes/user')
 
 const { sequelize } = require('./models')
 const passportConfig = require('./passport')
+const logger = require('./logger')
 
 const app = express()
+
 passportConfig()
 app.set('port', process.env.PORT || 8001);
 app.set('view engine', 'html');
@@ -35,7 +39,22 @@ sequelize.sync({ force: false })
         console.error(err)
     })
 
-app.use(morgan('dev'))
+if(process.env.NODE_ENV === 'production') { // process.env.NODE_ENV 환경변수를 통해 개발환경인지 배포환경인지 판단할 수 있음. (.env 파일에 넣을 수 없음.)
+    app.use(morgan('combined')) // 배포 환경
+    app.use(
+        helmet({ // 보안 규칙에서 원하는 옵션을 설정함.
+            contentSecurityPolicy: false,
+            crossOriginEmbedderPolicy: false,
+            crossOriginResourcePolicy: false,
+        })
+    )
+    app.use(hpp())
+} 
+else {
+    app.use(morgan('dev')) // 개발 환경
+}
+
+
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/img', express.static(path.join(__dirname, 'uploads'))) 
@@ -45,7 +64,8 @@ app.use('/img', express.static(path.join(__dirname, 'uploads')))
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cookieParser(process.env.COOKIE_SECRET))
-app.use(session({
+
+const sessionOption = {
     resave: false,
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
@@ -53,10 +73,15 @@ app.use(session({
         httpOnly: true,
         secure: false
     }
-}))
+}
+if (process.env.NODE_ENV === 'production') {
+    sessionOption.proxy = true; // https 적용을 위해 노드 서버 앞에 다른 서버를 뒀을 때 proxy를 true로 지정함.
+    sessionOption.cookie.secure = true; // https를 적용할 때만 cookie.secure를 true로 지정함.
+}
 
 
 
+app.use(session(sessionOption))
 
 app.use(passport.initialize()) // req객체에 passport설정을 심음.
 app.use(passport.session()) // req.session객체에 passport정보를 저장함.
@@ -72,6 +97,9 @@ app.use('/user', userRouter)
 app.use((req, res, next) => {
     const error = new Error(`${req.method} ${req.url} 라우터가 없습니다`)
     error.status = 404;
+    // 로거 객체.심각도 메서드('메시지'): 해당 심각도가 적용된 로그가 기록됨.
+    logger.info('hello')
+    logger.error(error.message)
     next(error)
 })
 
