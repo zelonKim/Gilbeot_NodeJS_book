@@ -4,6 +4,8 @@ const fs = require('fs')
 const multer = require('multer')
 const { afterUploadImage, uploadPost } = require('../controllers/post')
 const { isLoggedIn } = require('../middlewares')
+const { S3Client } = require('@aws-sdk/client-s3')
+const multerS3 = require('multer-s3')
 
 const router = express.Router()
 
@@ -15,7 +17,27 @@ catch (error) {
     fs.mkdirSync('uploads') // mkdirSync() create a directory.
 }
 
+const s3 = new S3Client({
+    credentials: {
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    },
+    region: 'ap-northeast-2'
+})
 
+
+const upload = multer({
+    storage: multerS3({
+        s3,
+        bucket: 'nodebird33',
+        key(req, file, cb) {
+            cb(null, `original/${Date.now()}_${file.originalname}`)
+        },
+    }),
+    limits: {fileSize: 5 * 1024 * 1024},
+})
+
+/* 
 const upload = multer({ // The multer returns middleware that process files uploaded in multipart/form-data format.
     storage: multer.diskStorage({ // diskStorage() returns a StorageEngine implementation configured to store files on the local file system.
         destination(req, file, cb) { // destination()`s callback function takes a string or function that determines the destination path for uploaded files.
@@ -28,7 +50,9 @@ const upload = multer({ // The multer returns middleware that process files uplo
         },
     }),
     limits: {fileSize: 5 * 1024 * 1024},
-})
+}) 
+*/
+
 router.post('/img', isLoggedIn, upload.single('img'), afterUploadImage) 
 // sinigle() returns middleware that processes a single file associated with the given form field.
 // 이미지를 업로드 받은 뒤, 이미지의 저장 경로를 클라이언트에게 응답함.
