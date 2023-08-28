@@ -8,8 +8,18 @@ const dotenv = require('dotenv')
 const passport = require('passport')
 const helmet = require('helmet')
 const hpp = require('hpp')
+const redis = require('redis')
+const RedisStore = require('connect-redis')(session)
 
 dotenv.config()
+
+const redisClient = redis.createClient({
+    url: `redis://${process.env.REDIS_HOST}: ${process.env.REDIS_PORT}`,
+    password: process.env.REDIS_PASSWORD,
+    legacyMode: true,
+})
+redisClient.connect().catch(console.error)
+
 
 const pageRouter = require('./routes/page')
 const authRouter = require('./routes/auth')
@@ -72,8 +82,10 @@ const sessionOption = {
     cookie: {
         httpOnly: true,
         secure: false
-    }
-}
+    },
+    store: new RedisStore({ client: redisClient })
+};
+
 if (process.env.NODE_ENV === 'production') {
     sessionOption.proxy = true; // https 적용을 위해 노드 서버 앞에 다른 서버를 뒀을 때 proxy를 true로 지정함.
     sessionOption.cookie.secure = true; // https를 적용할 때만 cookie.secure를 true로 지정함.
